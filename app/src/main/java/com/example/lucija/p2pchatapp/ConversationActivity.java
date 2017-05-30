@@ -7,21 +7,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity {
+
+    // DEFAULT IP
+    public static String SERVERIP = "10.0.2.15";
+    // DESIGNATE A PORT
+    public static final int SERVERPORT = 4567;
+    private Handler handler = new Handler();
+    private ServerSocket serverSocket;
 
     private ListView messagingListView;
     private View sendButton;
@@ -33,19 +51,6 @@ public class ConversationActivity extends AppCompatActivity {
     String number;
     int id;
 
-    IntentFilter intentFilter;
-
-    private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //display message
-            //TODO connect using received message
-            ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
-            messagesList.add(receievedMessage);
-            adapter.notifyDataSetChanged();
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,17 +61,17 @@ public class ConversationActivity extends AppCompatActivity {
         id = data.getInt("id");
         setTitle(name);
 
+        SERVERIP = getLocalIpAddress();
+
         messagesList = new ArrayList<>();
 
         //get references from main.xml
         messagingListView = (ListView) findViewById(R.id.messagingListView);
         sendButton = findViewById(R.id.sendButton);
         messageText = (EditText) findViewById(R.id.messageText);
-
         //set adapter for the listView
         adapter = new MessageAdapter(this, R.layout.left, messagesList);
         messagingListView.setAdapter(adapter);
-
         //event for button SEND
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,10 +81,10 @@ public class ConversationActivity extends AppCompatActivity {
                 } else {
                     //add message to list
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
-                    Toast.makeText(ConversationActivity.this, chatMessage.isMine()?"Mine":"False", Toast.LENGTH_SHORT).show();
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
                     messageText.setText("");
+                    //TODO send message to client
                 }
             }
         });
@@ -87,16 +92,11 @@ public class ConversationActivity extends AppCompatActivity {
         //LOGIC
         if(ContextCompat.checkSelfPermission(ConversationActivity.this,
                 Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(ConversationActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
         }
-        //filter for sms messages
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("SMS_RECEIVED_ACTION");
-        registerReceiver(intentReceiver, intentFilter);
 
         //TODO build connction message
-        String message = "DEBUG TEXT MESSAGE";
+        String message = SERVERIP;
 
         PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent("Message sent"), 0);
         PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent("Message delivered"), 0);
@@ -109,6 +109,27 @@ public class ConversationActivity extends AppCompatActivity {
         } catch(Exception e) {
             Toast.makeText(ConversationActivity.this, "Wasn't able to send the message", Toast.LENGTH_SHORT).show();
         }
+
+        //START LISTENING
+        Thread fst = new Thread(new ServerThread());
+        fst.start();
+    }
+
+    private String getLocalIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("ServerActivity", ex.toString());
+        }
+        return null;
     }
 
     @Override
@@ -118,14 +139,89 @@ public class ConversationActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        registerReceiver(intentReceiver, intentFilter);
-        super.onResume();
+    protected void onStop() {
+        super.onStop();
+        try {
+            // MAKE SURE YOU CLOSE THE SOCKET UPON EXITING
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Override
-    protected void onPause() {
-        unregisterReceiver(intentReceiver);
-        super.onPause();
+    public void receiveMesssage(String message){
+        ChatMessage receievedMessage = new ChatMessage(message, false);
+        messagesList.add(receievedMessage);
+        adapter.notifyDataSetChanged();
+    }
+
+    public class ServerThread implements Runnable {
+
+        public void run() {
+            try {
+                if (SERVERIP != null) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i("mine", "Listening on IP: " + SERVERIP);
+                        }
+                    });
+                    serverSocket = new ServerSocket(SERVERPORT);
+                    while (true) {
+                        // LISTEN FOR INCOMING CLIENTS
+                        Socket client = serverSocket.accept();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.i("mine", "Connected.");
+                            }
+                        });
+
+                        try {
+                            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                            String line = null;
+                            while ((line = in.readLine()) != null) {
+                                Log.d("ServerActivity", line);
+                                class MyRunnable implements Runnable{
+                                    String str;
+                                    public MyRunnable(String str){
+                                        this.str = str;
+                                    }
+                                    @Override
+                                    public void run() {
+                                        receiveMesssage(str);
+                                    }
+                                }
+                                handler.post(new MyRunnable(line));
+                            }
+                            break;
+                        } catch (Exception e) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.i("mine", "Oops. Connection interrupted. Please reconnect your phones.");
+                                }
+                            });
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i("mine", "Couldn't detect internet connection.");
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i("mine", "Error");
+                    }
+                });
+                e.printStackTrace();
+            }
+        }
     }
 }

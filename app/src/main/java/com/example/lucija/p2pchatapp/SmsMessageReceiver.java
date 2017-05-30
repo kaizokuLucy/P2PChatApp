@@ -20,7 +20,7 @@ public class SmsMessageReceiver extends BroadcastReceiver {
             for (int i = 0; i < messages.length; i++) {
                 messages[i] = SmsMessage.createFromPdu((byte[]) (pdus != null ? pdus[i] : null));
                 string += messages[i].getOriginatingAddress();
-                string += ": ";
+                string += ":";
                 string += messages[i].getMessageBody();
             }
             //display message

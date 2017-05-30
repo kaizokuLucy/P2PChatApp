@@ -44,6 +44,11 @@ public class HomeActivity extends AppCompatActivity {
         //printDatabase();
     }
 
+    public void listenButtonClicked(View view){
+        Intent intent = new Intent(HomeActivity.this, ReceiveActivity.class);
+        startActivity(intent);
+    }
+
     public void printDatabase() {
 
         contactList = myDBHandler.getContacts();

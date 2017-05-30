@@ -64,6 +64,41 @@ public class MyDBHandler extends SQLiteOpenHelper {
         db.execSQL("DELETE FROM " + TABLE_CONTACT + " WHERE " + COLUMN_ID + " = \"" + String.valueOf(id) + "\";" );
     }
 
+    public Contact getContactByNumber(String number){
+
+        String _id;
+        String _contactName;
+        String _contactNumber;
+        String _myKey;
+        String _contactKey;
+        Contact contactPom;
+        ArrayList<Contact> contactArrayList = new ArrayList<>();
+
+        SQLiteDatabase db = getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_CONTACT + " WHERE " + COLUMN_CONTACTNUMBER + " = " + number;
+        // Cursor point to a location in result
+        Cursor cursor = db.rawQuery(query, null);
+        // Move to the first row in result
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            if(cursor.getString(cursor.getColumnIndex("contactName")) != null) {
+                _id = cursor.getString(cursor.getColumnIndex("_id"));
+                _contactName = cursor.getString(cursor.getColumnIndex("contactName"));
+                _contactNumber = cursor.getString(cursor.getColumnIndex("contactNumber"));
+                _contactKey = cursor.getString(cursor.getColumnIndex("contactKey"));
+                _myKey = cursor.getString(cursor.getColumnIndex("myKey"));
+                contactPom = new Contact(_id, _contactName, _contactNumber, _myKey, _contactKey);
+                contactArrayList.add(contactPom);
+                Log.i("DATABASE", _contactName);
+            }
+            cursor.moveToNext();
+        }
+        db.close();
+
+        if (!contactArrayList.isEmpty()) return contactArrayList.get(0);
+        else return null;
+    }
+
     public ArrayList<Contact> getContacts() {
 
         String _id;
