@@ -59,7 +59,8 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage> {
     @Override
     public int getItemViewType(int position) {
         // return a value between 0 and (getViewTypeCount - 1)
-        return position % 2;
+        if(getItem(position).isMine()) return 0;
+        else return 1;
     }
 
     private class ViewHolder {
