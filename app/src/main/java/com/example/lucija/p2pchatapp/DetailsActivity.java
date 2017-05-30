@@ -34,14 +34,20 @@ public class DetailsActivity extends AppCompatActivity {
 
         nameText.setText(name);
         numberText.setText(number);
-
-        Toast.makeText(this, String.valueOf(getIntent().getIntExtra("id", -1)), Toast.LENGTH_LONG).show();
     }
 
     public void onDeleteClicked(View view){
         MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
         myDBHandler.deleteContact(getIntent().getIntExtra("id", -1));
         Intent intent = new Intent(DetailsActivity.this, HomeActivity.class);
+        startActivity(intent);
+    }
+
+    public void startConversation(View view){
+        Intent intent = new Intent(DetailsActivity.this, ConversationActivity.class);
+        intent.putExtra("name", name);
+        intent.putExtra("number", number);
+        intent.putExtra("id", getIntent().getIntExtra("id", -1));
         startActivity(intent);
     }
 }

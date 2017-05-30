@@ -20,8 +20,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".DetailsActivity" />
-        <activity android:name=".AddContactActivity"/>
-        <activity android:name=".KeyActivity"/>
+        <activity android:name=".AddContactActivity" />
+        <activity android:name=".KeyActivity" />
+        <activity android:name=".ConversationActivity"></activity>
     </application>
 
 </manifest>
