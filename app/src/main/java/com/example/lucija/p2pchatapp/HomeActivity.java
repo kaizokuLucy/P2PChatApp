@@ -24,7 +24,8 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         lucysListView = (ListView) findViewById(R.id.contactsListView);
-
+        //Contact prob = new Contact("Danijel", "0955964666", "Kdasf232", "Ffs323o");
+        //myDBHandler.addContact(prob);
         printDatabase();
     }
 
@@ -36,12 +37,11 @@ public class HomeActivity extends AppCompatActivity {
 
     public void addButtonClicked(View view) {
        // Toast.makeText(HomeActivity.this, "treba se dodat", Toast.LENGTH_SHORT).show();
-       // Contact prob = new Contact("Danijel", "0955964666", "Kdasf232", "Ffs323o");
+
         Intent intent = new Intent(HomeActivity.this, AddContactActivity.class);
         startActivity(intent);
 
-        //myDBHandler.addContact(prob);
-        //printDatabase();
+        printDatabase();
     }
 
     public void listenButtonClicked(View view){
@@ -72,13 +72,10 @@ public class HomeActivity extends AppCompatActivity {
             lucysListView.setAdapter(lucysAdapter);
         }
 
-
         lucysListView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                       // String op = String.valueOf(parent.getItemAtPosition(position));
-                       // Toast.makeText(HomeActivity.this, op, Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(HomeActivity.this, DetailsActivity.class);
                         Contact contactDetail = contactList.get(position);
                         intent.putExtra("name", contactDetail.get_contactName());
@@ -88,7 +85,6 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 }
         );
-
     }
 
     @Override

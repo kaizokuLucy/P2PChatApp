@@ -44,12 +44,24 @@ public class ReceiveActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             //TODO connect using received message
             //ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
-            String[] parts = intent.getStringExtra("message").split(":");
-            serverIpAddress = parts[1];
-            number = parts[0];
-            Contact contact = myDBHandler.getContactByNumber(number);
-            name = contact.get_contactName();
-            id = contact.get_id();
+            String[] parts = intent.getStringExtra("message").split("LUCIJA");
+            try {
+                serverIpAddress = parts[1];
+                number = parts[0];
+                number = number.replaceFirst("\\+385", "0");
+                Contact contact = myDBHandler.getContactByNumber(number);
+                name = contact.get_contactName();
+                setTitle(name);
+                id = contact.get_id();
+            }
+            catch(Exception e){
+                ChatMessage chatMessage = new ChatMessage(e.getMessage() + "\n" + number + "\n" + serverIpAddress, false);
+                messagesList.add(chatMessage);
+                adapter.notifyDataSetChanged();
+            }
+            ChatMessage chatMessage = new ChatMessage(name + "\n" + number + "\n" + serverIpAddress, false);
+            messagesList.add(chatMessage);
+            adapter.notifyDataSetChanged();
             connect();
         }
     };

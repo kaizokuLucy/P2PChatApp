@@ -1,5 +1,6 @@
 package com.example.lucija.p2pchatapp;
 
+import android.util.Base64;
 import android.widget.Toast;
 
 import java.security.SecureRandom;
@@ -11,40 +12,24 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class CryptoUtil {
 
-    private CryptoUtil() {
+    private SecretKey myKey;
+    private SecretKey contactKey;
+
+    private CryptoUtil(String myKey, String contactKey) {
+        this.myKey = new SecretKeySpec(Base64.decode(myKey, Base64.DEFAULT), "AES");
+        this.contactKey = new SecretKeySpec(Base64.decode(contactKey, Base64.DEFAULT), "AES");
     }
 
-    public String encryption(String strNormalText, String number){
-        String seedValue = number;
-        String normalTextEnc="";
-        try {
-            normalTextEnc = encrypt(seedValue, strNormalText);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return normalTextEnc;
-    }
-    public String decryption(String strEncryptedText, String number){
-        String seedValue = number;
-        String strDecryptedText="";
-        try {
-            strDecryptedText = decrypt(seedValue, strEncryptedText);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return strDecryptedText;
-    }
-
-    public static String encrypt(String seed, String cleartext) throws Exception {
-        byte[] rawKey = getRawKey(seed.getBytes()); //DOKUCI VLASTITI KLJUC IZ BAZE
-        byte[] result = encrypt(rawKey, cleartext.getBytes());
+    public String encrypt(String cleartext) throws Exception {
+        //Encrypt with own key
+        byte[] result = encrypt(myKey, cleartext.getBytes());
         return toHex(result);
     }
 
-    public static String decrypt(String seed, String encrypted) throws Exception {
-        byte[] rawKey = getRawKey(seed.getBytes()); //DOKUCI CONTACT KLJUC IZ BAZE
+    public String decrypt(String encrypted) throws Exception {
+        //Decrypt with contact key
         byte[] enc = toByte(encrypted);
-        byte[] result = decrypt(rawKey, enc);
+        byte[] result = decrypt(contactKey, enc);
         return new String(result);
     }
 
@@ -54,24 +39,19 @@ public class CryptoUtil {
         sr.setSeed(seed);
         kgen.init(128, sr); // 192 and 256 bits may not be available
         SecretKey skey = kgen.generateKey();
-        byte[] raw = skey.getEncoded();
-        return raw;
+        return skey.getEncoded();
     }
 
-    private static byte[] encrypt(byte[] raw, byte[] clear) throws Exception {
-        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+    private static byte[] encrypt(SecretKey key, byte[] clear) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-        byte[] encrypted = cipher.doFinal(clear);
-        return encrypted;
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return cipher.doFinal(clear);
     }
 
-    private static byte[] decrypt(byte[] raw, byte[] encrypted) throws Exception {
-        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+    private static byte[] decrypt(SecretKey key, byte[] encrypted) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-        byte[] decrypted = cipher.doFinal(encrypted);
-        return decrypted;
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        return cipher.doFinal(encrypted);
     }
 
     public static String toHex(String txt) {

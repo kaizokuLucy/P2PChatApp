@@ -75,7 +75,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
         ArrayList<Contact> contactArrayList = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_CONTACT + " WHERE " + COLUMN_CONTACTNUMBER + " = " + number;
+        String query = "SELECT * FROM " + TABLE_CONTACT + " WHERE " + COLUMN_CONTACTNUMBER + " = \"" + number + "\";";
         // Cursor point to a location in result
         Cursor cursor = db.rawQuery(query, null);
         // Move to the first row in result

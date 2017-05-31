@@ -32,6 +32,7 @@ public class KeyActivity extends AppCompatActivity {
             myKey = Base64.encodeToString(CryptoUtil.getRawKey(getIntent().getStringExtra("number").getBytes()), Base64.DEFAULT);
         }
         catch (Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         keyText.setText(myKey);
     }

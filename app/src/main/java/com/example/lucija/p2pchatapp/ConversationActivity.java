@@ -35,7 +35,7 @@ import java.util.List;
 public class ConversationActivity extends AppCompatActivity {
 
     // DEFAULT IP
-    public static String SERVERIP = "10.0.2.15";
+    public static String SERVERIP = "192.168.0.19";
     // DESIGNATE A PORT
     public static final int SERVERPORT = 4567;
     private Handler handler = new Handler();
@@ -104,7 +104,7 @@ public class ConversationActivity extends AppCompatActivity {
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
-            Toast.makeText(ConversationActivity.this, "Sent connection SMS!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
             messageText.getText().clear();
         } catch(Exception e) {
             Toast.makeText(ConversationActivity.this, "Wasn't able to send the message", Toast.LENGTH_SHORT).show();
