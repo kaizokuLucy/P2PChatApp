@@ -15,7 +15,7 @@ public class CryptoUtil {
     private SecretKey myKey;
     private SecretKey contactKey;
 
-    private CryptoUtil(String myKey, String contactKey) {
+    public CryptoUtil(String myKey, String contactKey) {
         this.myKey = new SecretKeySpec(Base64.decode(myKey, Base64.DEFAULT), "AES");
         this.contactKey = new SecretKeySpec(Base64.decode(contactKey, Base64.DEFAULT), "AES");
     }

@@ -35,7 +35,7 @@ import java.util.List;
 public class ConversationActivity extends AppCompatActivity {
 
     // DEFAULT IP
-    public static String SERVERIP = "192.168.0.19";
+    public static String SERVERIP = "Luffy";
     // DESIGNATE A PORT
     public static final int SERVERPORT = 4567;
     private Handler handler = new Handler();
@@ -89,6 +89,31 @@ public class ConversationActivity extends AppCompatActivity {
             }
         });
 
+        /*
+        //DEBUG ENCRYPT AND DECRYPT METHODS FOM CRYPTO UTIL CLASS
+        MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
+        Contact contact = myDBHandler.getContactByNumber(number);
+        CryptoUtil cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getMyKey());
+        String debugText;
+        try{
+            debugText = cryptoUtil.encrypt("DEBUG TEXT");
+        } catch(Exception e){
+            debugText = "NIJE UPALILO";
+        }
+        ChatMessage chatMessage1 = new ChatMessage(debugText, true);
+        messagesList.add(chatMessage1);
+        adapter.notifyDataSetChanged();
+        try{
+            debugText = cryptoUtil.decrypt(debugText);
+        } catch(Exception e){
+            debugText = "NIJE UPALILO V2";
+        }
+        ChatMessage chatMessage2 = new ChatMessage(debugText, true);
+        messagesList.add(chatMessage2);
+        adapter.notifyDataSetChanged();
+        //DEBUG
+        */
+
         //LOGIC
         if(ContextCompat.checkSelfPermission(ConversationActivity.this,
                 Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -103,7 +128,7 @@ public class ConversationActivity extends AppCompatActivity {
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
+            //smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
             Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
             messageText.getText().clear();
         } catch(Exception e) {

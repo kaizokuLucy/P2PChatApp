@@ -52,7 +52,7 @@ public class HomeActivity extends AppCompatActivity {
     public void printDatabase() {
 
         contactList = myDBHandler.getContacts();
-        String[] contactsName = new String[contactList.size()];
+        String[] contactsName;
         int i = 0;
 
         if (contactList == null) {
@@ -61,6 +61,7 @@ public class HomeActivity extends AppCompatActivity {
             //ListAdapter lucysAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, contactsName);
             //lucysListView.setAdapter(lucysAdapter);
         } else {
+            contactsName = new String[contactList.size()];
             for (Contact c : contactList) {
                 try {
                     contactsName[i] = c.get_contactName();
