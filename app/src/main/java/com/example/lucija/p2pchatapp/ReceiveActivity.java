@@ -40,7 +40,6 @@ public class ReceiveActivity extends AppCompatActivity {
 
     IntentFilter intentFilter;
 
-    public static PrintWriter out;
 
     private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
         @Override
@@ -142,8 +141,9 @@ public class ReceiveActivity extends AppCompatActivity {
                 Log.d("ClientActivity", "C: Connecting...");
                 Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
-                out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
-                        .getOutputStream())), true);;
+                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
+                        .getOutputStream())), true);
+                ConversationActivity.out = out;
                 //while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
@@ -156,7 +156,7 @@ public class ReceiveActivity extends AppCompatActivity {
                         Log.e("ClientActivity", "S: Error", e);
                     }
                 //}
-                socket.close();
+                //socket.close();
                 Log.d("ClientActivity", "C: Closed.");
             } catch (Exception e) {
                 Log.e("ClientActivity", "C: Error", e);

@@ -23,9 +23,12 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -40,6 +43,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity {
+
+    public static PrintWriter out;
 
     // DEFAULT IP
     public static String SERVERIP = "Luffy";
@@ -92,7 +97,7 @@ public class ConversationActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     messageText.setText("");
 
-                  //  ReceiveActivity.out.println("Narutooooooooooo");
+                    out.println(messageText.getText().toString());
                 }
             }
         });
