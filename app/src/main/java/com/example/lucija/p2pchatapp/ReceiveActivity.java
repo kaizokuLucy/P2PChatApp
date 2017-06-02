@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +14,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -25,12 +28,15 @@ import java.util.List;
 public class ReceiveActivity extends AppCompatActivity {
 
     PrintWriter out;
+    BufferedReader in;
 
     private ListView messagingListView;
     private View sendButton;
     private EditText messageText;
     private List<ChatMessage> messagesList;
     private ArrayAdapter<ChatMessage> adapter;
+
+    private Handler handler = new Handler();
 
     String name;
     String number;
@@ -147,6 +153,7 @@ public class ReceiveActivity extends AppCompatActivity {
                 connected = true;
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
                         .getOutputStream())), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 //while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
@@ -155,6 +162,24 @@ public class ReceiveActivity extends AppCompatActivity {
                         //out.println("Hey " + name + " !");
                         out.println("Hello " + name + " !");
                         Log.d("ClientActivity", "C: Sent.");
+
+                        String line = in.readLine();
+                        class MyRunnable implements Runnable {
+                            String str;
+
+                            public MyRunnable(String str) {
+                                this.str = str;
+                            }
+
+                            @Override
+                            public void run() {
+                                receiveMesssage(str);
+                            }
+                        }
+                        if(!line.isEmpty()) {
+                            handler.post(new MyRunnable(line));
+                        }
+
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);
                     }
@@ -166,5 +191,10 @@ public class ReceiveActivity extends AppCompatActivity {
                 connected = false;
             }
         }
+    }
+    public void receiveMesssage(String message) {
+        ChatMessage receievedMessage = new ChatMessage(message, false);
+        messagesList.add(receievedMessage);
+        adapter.notifyDataSetChanged();
     }
 }

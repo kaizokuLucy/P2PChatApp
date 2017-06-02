@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +45,7 @@ import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity {
 
-    public PrintWriter out;
+    public DataOutputStream out;
 
     // DEFAULT IP
     public static String SERVERIP = "Luffy";
@@ -95,7 +96,9 @@ public class ConversationActivity extends AppCompatActivity {
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
-                    out.println(messageText.getText().toString());
+                    try{
+                        out.writeChars(messageText.getText().toString());
+                    } catch (Exception e){}
                     messageText.setText("");
 
 
@@ -250,14 +253,14 @@ public class ConversationActivity extends AppCompatActivity {
                         }
                     });
                     serverSocket = new ServerSocket(SERVERPORT);
+                    Socket client = serverSocket.accept();
                     while (true) {
                         // LISTEN FOR INCOMING CLIENTS
-                        Socket client = serverSocket.accept();
                         Log.i("mine", "Connected.");
-
 
                         try {
                             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                            out = new DataOutputStream(client.getOutputStream());
                             String line = "LUFFYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY";
                             while ((line = in.readLine()) != null) {
                                 Log.d("ServerActivity", line);
