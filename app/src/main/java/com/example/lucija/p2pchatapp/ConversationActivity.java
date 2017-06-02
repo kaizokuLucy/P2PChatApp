@@ -122,7 +122,7 @@ public class ConversationActivity extends AppCompatActivity {
         */
 
         //LOGIC
-        if(ContextCompat.checkSelfPermission(ConversationActivity.this,
+        if (ContextCompat.checkSelfPermission(ConversationActivity.this,
                 Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(ConversationActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
         }
@@ -138,7 +138,7 @@ public class ConversationActivity extends AppCompatActivity {
             smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
             Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
             messageText.getText().clear();
-        } catch(Exception e) {
+        } catch (Exception e) {
             Toast.makeText(ConversationActivity.this, "Wasn't able to send the message", Toast.LENGTH_SHORT).show();
         }
 
@@ -189,7 +189,7 @@ public class ConversationActivity extends AppCompatActivity {
     }
 
     //pronalazenje vanjske ip adrese
-    public String find_my_IP(){
+    public String find_my_IP() {
         URL url;
         InputStream inStream;
         BufferedReader bufferedReader;
@@ -209,7 +209,7 @@ public class ConversationActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         Intent intent = new Intent(ConversationActivity.this, HomeActivity.class);
         startActivity(intent);
     }
@@ -225,7 +225,7 @@ public class ConversationActivity extends AppCompatActivity {
         }
     }
 
-    public void receiveMesssage(String message){
+    public void receiveMesssage(String message) {
         ChatMessage receievedMessage = new ChatMessage(message, false);
         messagesList.add(receievedMessage);
         adapter.notifyDataSetChanged();
@@ -258,11 +258,13 @@ public class ConversationActivity extends AppCompatActivity {
                             String line = null;
                             while ((line = in.readLine()) != null) {
                                 Log.d("ServerActivity", line);
-                                class MyRunnable implements Runnable{
+                                class MyRunnable implements Runnable {
                                     String str;
-                                    public MyRunnable(String str){
+
+                                    public MyRunnable(String str) {
                                         this.str = str;
                                     }
+
                                     @Override
                                     public void run() {
                                         receiveMesssage(str);
@@ -290,13 +292,7 @@ public class ConversationActivity extends AppCompatActivity {
                     });
                 }
             } catch (Exception e) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i("mine", "Error");
-                    }
-                });
-                e.printStackTrace();
+                Log.i("mine", e.getMessage());
             }
         }
     }

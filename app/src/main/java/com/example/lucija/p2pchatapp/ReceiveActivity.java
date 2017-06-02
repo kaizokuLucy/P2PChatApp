@@ -58,6 +58,7 @@ public class ReceiveActivity extends AppCompatActivity {
                 ChatMessage chatMessage = new ChatMessage(e.getMessage() + "\n" + number + "\n" + serverIpAddress, false);
                 messagesList.add(chatMessage);
                 adapter.notifyDataSetChanged();
+                Log.d("PORUKA", "luffy");
             }
             ChatMessage chatMessage = new ChatMessage(name + "\n" + number + "\n" + serverIpAddress, false);
             messagesList.add(chatMessage);
@@ -131,9 +132,9 @@ public class ReceiveActivity extends AppCompatActivity {
 
         public void run() {
             try {
-                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
+              //  InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
                 Log.d("ClientActivity", "C: Connecting...");
-                Socket socket = new Socket(serverAddr, ConversationActivity.SERVERPORT);
+                Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
                 while (connected) {
                     try {
