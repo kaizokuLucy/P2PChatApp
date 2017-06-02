@@ -246,12 +246,8 @@ public class ConversationActivity extends AppCompatActivity {
                     while (true) {
                         // LISTEN FOR INCOMING CLIENTS
                         Socket client = serverSocket.accept();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.i("mine", "Connected.");
-                            }
-                        });
+                        Log.i("mine", "Connected.");
+
 
                         try {
                             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));

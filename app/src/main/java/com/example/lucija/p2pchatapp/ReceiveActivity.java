@@ -46,6 +46,7 @@ public class ReceiveActivity extends AppCompatActivity {
             ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
             String[] parts = intent.getStringExtra("message").split("LUCIJA");
             Log.d("Sms", intent.getStringExtra("message"));
+
             try {
                 serverIpAddress = parts[1];
                 number = parts[0];
@@ -137,18 +138,19 @@ public class ReceiveActivity extends AppCompatActivity {
                 Log.d("ClientActivity", "C: Connecting...");
                 Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
-                while (connected) {
+                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
+                        .getOutputStream())), true);;
+                //while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
-                        PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
-                                .getOutputStream())), true);
+
                         // WHERE YOU ISSUE THE COMMANDS
                         out.println("Hey Server!");
                         Log.d("ClientActivity", "C: Sent.");
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);
                     }
-                }
+                //}
                 socket.close();
                 Log.d("ClientActivity", "C: Closed.");
             } catch (Exception e) {
