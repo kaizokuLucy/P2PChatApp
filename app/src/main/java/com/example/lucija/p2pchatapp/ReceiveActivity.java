@@ -176,9 +176,9 @@ public class ReceiveActivity extends AppCompatActivity {
                                 receiveMesssage(str);
                             }
                         }
-                        if(!line.isEmpty()) {
+                        //if(!line.isEmpty()) {
                             handler.post(new MyRunnable(line));
-                        }
+                        //}
 
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);

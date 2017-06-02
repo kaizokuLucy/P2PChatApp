@@ -97,11 +97,9 @@ public class ConversationActivity extends AppCompatActivity {
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
                     try{
-                        out.writeChars(messageText.getText().toString());
+                        out.writeBytes(messageText.getText().toString()+"\n");
                     } catch (Exception e){}
                     messageText.setText("");
-
-
                 }
             }
         });
