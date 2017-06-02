@@ -43,8 +43,9 @@ public class ReceiveActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             //TODO connect using received message
-            //ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
+            ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
             String[] parts = intent.getStringExtra("message").split("LUCIJA");
+            Log.d("Sms", intent.getStringExtra("message"));
             try {
                 serverIpAddress = parts[1];
                 number = parts[0];
