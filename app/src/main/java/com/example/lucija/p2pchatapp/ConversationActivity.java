@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -22,12 +24,17 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -93,7 +100,7 @@ public class ConversationActivity extends AppCompatActivity {
         //DEBUG ENCRYPT AND DECRYPT METHODS FOM CRYPTO UTIL CLASS
         MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
         Contact contact = myDBHandler.getContactByNumber(number);
-        CryptoUtil cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getMyKey());
+        CryptoUtil cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getMyKey()); //Inace ide .getContactKey kao drugi
         String debugText;
         try{
             debugText = cryptoUtil.encrypt("DEBUG TEXT");
@@ -128,7 +135,7 @@ public class ConversationActivity extends AppCompatActivity {
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            //smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
+            smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
             Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
             messageText.getText().clear();
         } catch(Exception e) {
@@ -140,7 +147,7 @@ public class ConversationActivity extends AppCompatActivity {
         fst.start();
     }
 
-    private String getLocalIpAddress() {
+    /*private String getLocalIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
@@ -155,6 +162,50 @@ public class ConversationActivity extends AppCompatActivity {
             Log.e("ServerActivity", ex.toString());
         }
         return null;
+    }*/
+
+    //nade lokalnu ip adresu
+    public String getLocalIpAddress() {
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        int ip = wifiInfo.getIpAddress();
+
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ip = Integer.reverseBytes(ip);
+        }
+
+        byte[] ipByteArray = BigInteger.valueOf(ip).toByteArray();
+
+        String ipAddressString;
+        try {
+            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+            return ipAddressString;
+        } catch (UnknownHostException ex) {
+            Log.e("WIFIIP", "Unable to get host address.");
+            ipAddressString = null;
+        }
+        return "";
+
+    }
+
+    //pronalazenje vanjske ip adrese
+    public String find_my_IP(){
+        URL url;
+        InputStream inStream;
+        BufferedReader bufferedReader;
+
+        try {
+            url = new URL("http://icanhazip.com/");
+            inStream = url.openStream();
+
+            bufferedReader = new BufferedReader(new InputStreamReader(inStream));
+            return bufferedReader.readLine();
+
+        } catch (IOException e) {
+            Log.d("EXCEPTION", "asdf");
+        }
+
+        return "Unknown";
     }
 
     @Override
