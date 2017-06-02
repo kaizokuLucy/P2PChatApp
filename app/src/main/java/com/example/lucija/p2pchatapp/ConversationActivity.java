@@ -44,7 +44,7 @@ import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity {
 
-    public static PrintWriter out;
+    public PrintWriter out;
 
     // DEFAULT IP
     public static String SERVERIP = "Luffy";
@@ -95,9 +95,10 @@ public class ConversationActivity extends AppCompatActivity {
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
+                    out.println(messageText.getText().toString());
                     messageText.setText("");
 
-                    out.println(messageText.getText().toString());
+
                 }
             }
         });
@@ -257,7 +258,7 @@ public class ConversationActivity extends AppCompatActivity {
 
                         try {
                             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                            String line = null;
+                            String line = "LUFFYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY";
                             while ((line = in.readLine()) != null) {
                                 Log.d("ServerActivity", line);
                                 class MyRunnable implements Runnable {
@@ -272,7 +273,7 @@ public class ConversationActivity extends AppCompatActivity {
                                         receiveMesssage(str);
                                     }
                                 }
-                                handler.post(new MyRunnable(line));
+                                    handler.post(new MyRunnable(line));
                             }
                             break;
                         } catch (Exception e) {

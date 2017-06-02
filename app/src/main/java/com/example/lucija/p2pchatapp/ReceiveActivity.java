@@ -24,6 +24,8 @@ import java.util.List;
 
 public class ReceiveActivity extends AppCompatActivity {
 
+    PrintWriter out;
+
     private ListView messagingListView;
     private View sendButton;
     private EditText messageText;
@@ -101,7 +103,9 @@ public class ReceiveActivity extends AppCompatActivity {
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
+                    out.println(messageText.getText().toString());
                     messageText.setText("");
+
                     //TODO send message to server
                 }
             }
@@ -141,16 +145,15 @@ public class ReceiveActivity extends AppCompatActivity {
                 Log.d("ClientActivity", "C: Connecting...");
                 Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
-                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
+                out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
                         .getOutputStream())), true);
-                ConversationActivity.out = out;
                 //while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
 
                         // WHERE YOU ISSUE THE COMMANDS
                         //out.println("Hey " + name + " !");
-                        out.println("asdf");
+                        out.println("Hello " + name + " !");
                         Log.d("ClientActivity", "C: Sent.");
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);
