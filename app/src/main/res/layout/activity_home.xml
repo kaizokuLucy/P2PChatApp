@@ -10,12 +10,12 @@
         android:id="@+id/listenButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginTop="4dp"
         android:onClick="listenButtonClicked"
         android:text="Listen"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:layout_above="@+id/contactsListView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
     <Button
         android:id="@+id/addContactButton"
         android:layout_width="wrap_content"
