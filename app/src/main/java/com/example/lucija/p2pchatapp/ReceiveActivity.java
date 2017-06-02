@@ -39,6 +39,9 @@ public class ReceiveActivity extends AppCompatActivity {
     String serverIpAddress;
 
     IntentFilter intentFilter;
+
+    public static PrintWriter out;
+
     private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -139,14 +142,15 @@ public class ReceiveActivity extends AppCompatActivity {
                 Log.d("ClientActivity", "C: Connecting...");
                 Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
-                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
+                out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
                         .getOutputStream())), true);;
                 //while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
 
                         // WHERE YOU ISSUE THE COMMANDS
-                        out.println("Hey Server!");
+                        //out.println("Hey " + name + " !");
+                        out.println("asdf");
                         Log.d("ClientActivity", "C: Sent.");
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);

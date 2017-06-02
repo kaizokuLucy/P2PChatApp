@@ -91,7 +91,8 @@ public class ConversationActivity extends AppCompatActivity {
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
                     messageText.setText("");
-                    //TODO send message to client
+
+                  //  ReceiveActivity.out.println("Narutooooooooooo");
                 }
             }
         });
