@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +41,12 @@ public class ReceiveActivity extends AppCompatActivity {
     String number;
     int id;
     MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
+    CryptoUtil cryptoUtil;
+    Contact contact;
 
     boolean connected = false;
     String serverIpAddress;
+    private Socket socket;
 
     IntentFilter intentFilter;
 
@@ -52,7 +54,6 @@ public class ReceiveActivity extends AppCompatActivity {
     private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            //TODO connect using received message
             //ChatMessage receievedMessage = new ChatMessage(intent.getStringExtra("message"), false);
             String[] parts = intent.getStringExtra("message").split("LUCIJA");
             Log.d("Sms", intent.getStringExtra("message"));
@@ -61,7 +62,8 @@ public class ReceiveActivity extends AppCompatActivity {
                 serverIpAddress = parts[1];
                 number = parts[0];
                 number = number.replaceFirst("\\+385", "0");
-                Contact contact = myDBHandler.getContactByNumber(number);
+                contact = myDBHandler.getContactByNumber(number);
+                cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getContactKey());
                 name = contact.get_contactName();
                 setTitle(name);
                 id = contact.get_id();
@@ -72,9 +74,9 @@ public class ReceiveActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 Log.d("PORUKA", "luffy");
             }
-            ChatMessage chatMessage = new ChatMessage(name + "\n" + number + "\n" + serverIpAddress, false);
+            /*ChatMessage chatMessage = new ChatMessage(name + "\n" + number + "\n" + serverIpAddress, false);
             messagesList.add(chatMessage);
-            adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();*/
             connect();
         }
     };
@@ -98,6 +100,7 @@ public class ReceiveActivity extends AppCompatActivity {
         //set adapter for the listView
         adapter = new MessageAdapter(this, R.layout.left, messagesList);
         messagingListView.setAdapter(adapter);
+
         //event for button SEND
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +112,15 @@ public class ReceiveActivity extends AppCompatActivity {
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
-                    out.println(messageText.getText().toString());
+                    String encrypted;
+                    try{
+                        encrypted = cryptoUtil.encrypt(messageText.getText().toString());
+                        out.println(encrypted);
+                    } catch (Exception e) {
+                        encrypted = "Encryption failed!";
+                        Toast.makeText(ReceiveActivity.this, encrypted, Toast.LENGTH_LONG).show();
+                    }
                     messageText.setText("");
-
-                    //TODO send message to server
                 }
             }
         });
@@ -149,18 +157,18 @@ public class ReceiveActivity extends AppCompatActivity {
             try {
               //  InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
                 Log.d("ClientActivity", "C: Connecting...");
-                Socket socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
+                socket = new Socket(serverIpAddress, ConversationActivity.SERVERPORT);
                 connected = true;
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
-                        .getOutputStream())), true);
+                       .getOutputStream())), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                //while (connected) {
+                while (connected) {
                     try {
                         Log.d("ClientActivity", "C: Sending command.");
 
                         // WHERE YOU ISSUE THE COMMANDS
                         //out.println("Hey " + name + " !");
-                        out.println("Hello " + name + " !");
+                        //out.println("Hello " + name + " !");
                         Log.d("ClientActivity", "C: Sent.");
 
                         String line = in.readLine();
@@ -173,17 +181,17 @@ public class ReceiveActivity extends AppCompatActivity {
 
                             @Override
                             public void run() {
-                                receiveMesssage(str);
+                                receiveMessage(str);
                             }
                         }
-                        //if(!line.isEmpty()) {
+                        if(!line.isEmpty()) {
                             handler.post(new MyRunnable(line));
-                        //}
+                        }
 
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);
                     }
-                //}
+                }
                 //socket.close();
                 Log.d("ClientActivity", "C: Closed.");
             } catch (Exception e) {
@@ -192,9 +200,16 @@ public class ReceiveActivity extends AppCompatActivity {
             }
         }
     }
-    public void receiveMesssage(String message) {
-        ChatMessage receievedMessage = new ChatMessage(message, false);
-        messagesList.add(receievedMessage);
+    public void receiveMessage(String message) {
+        String decrypted;
+        try{
+            decrypted = cryptoUtil.decrypt(message);
+        }
+        catch (Exception e) {
+            decrypted = "Failed message decrypting!";
+        }
+        ChatMessage receivedMessage = new ChatMessage(decrypted, false);
+        messagesList.add(receivedMessage);
         adapter.notifyDataSetChanged();
     }
 }

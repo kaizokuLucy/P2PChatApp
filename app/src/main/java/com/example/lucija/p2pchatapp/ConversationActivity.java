@@ -2,10 +2,7 @@ package com.example.lucija.p2pchatapp;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -23,24 +20,18 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 public class ConversationActivity extends AppCompatActivity {
@@ -63,6 +54,7 @@ public class ConversationActivity extends AppCompatActivity {
     String name;
     String number;
     int id;
+    CryptoUtil cryptoUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +69,9 @@ public class ConversationActivity extends AppCompatActivity {
         SERVERIP = getLocalIpAddress();
 
         messagesList = new ArrayList<>();
+        MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
+        Contact contact = myDBHandler.getContactByNumber(number);
+        cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getContactKey());
 
         //get references from main.xml
         messagingListView = (ListView) findViewById(R.id.messagingListView);
@@ -85,6 +80,7 @@ public class ConversationActivity extends AppCompatActivity {
         //set adapter for the listView
         adapter = new MessageAdapter(this, R.layout.left, messagesList);
         messagingListView.setAdapter(adapter);
+
         //event for button SEND
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,38 +92,17 @@ public class ConversationActivity extends AppCompatActivity {
                     ChatMessage chatMessage = new ChatMessage(messageText.getText().toString(), true);
                     messagesList.add(chatMessage);
                     adapter.notifyDataSetChanged();
+                    String encrypted;
                     try{
-                        out.writeBytes(messageText.getText().toString()+"\n");
-                    } catch (Exception e){}
+                        encrypted = cryptoUtil.encrypt(messageText.getText().toString());
+                        out.writeBytes(encrypted + "\n");
+                    } catch (Exception e) {
+                        Log.d("asdf", "encryption failed?!!?");
+                    }
                     messageText.setText("");
                 }
             }
         });
-
-        /*
-        //DEBUG ENCRYPT AND DECRYPT METHODS FOM CRYPTO UTIL CLASS
-        MyDBHandler myDBHandler = new MyDBHandler(this, null, null, 2);
-        Contact contact = myDBHandler.getContactByNumber(number);
-        CryptoUtil cryptoUtil = new CryptoUtil(contact.getMyKey(), contact.getMyKey()); //Inace ide .getContactKey kao drugi
-        String debugText;
-        try{
-            debugText = cryptoUtil.encrypt("DEBUG TEXT");
-        } catch(Exception e){
-            debugText = "NIJE UPALILO";
-        }
-        ChatMessage chatMessage1 = new ChatMessage(debugText, true);
-        messagesList.add(chatMessage1);
-        adapter.notifyDataSetChanged();
-        try{
-            debugText = cryptoUtil.decrypt(debugText);
-        } catch(Exception e){
-            debugText = "NIJE UPALILO V2";
-        }
-        ChatMessage chatMessage2 = new ChatMessage(debugText, true);
-        messagesList.add(chatMessage2);
-        adapter.notifyDataSetChanged();
-        //DEBUG
-        */
 
         //LOGIC
         if (ContextCompat.checkSelfPermission(ConversationActivity.this,
@@ -135,7 +110,6 @@ public class ConversationActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(ConversationActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
         }
 
-        //TODO build connction message
         String message = SERVERIP;
 
         PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent("Message sent"), 0);
@@ -144,7 +118,7 @@ public class ConversationActivity extends AppCompatActivity {
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(number, null, message, sentPI, deliveredPI);
-            Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
+            //Toast.makeText(ConversationActivity.this, message, Toast.LENGTH_LONG).show();
             messageText.getText().clear();
         } catch (Exception e) {
             Toast.makeText(ConversationActivity.this, "Wasn't able to send the message", Toast.LENGTH_SHORT).show();
@@ -154,23 +128,6 @@ public class ConversationActivity extends AppCompatActivity {
         Thread fst = new Thread(new ServerThread());
         fst.start();
     }
-
-    /*private String getLocalIpAddress() {
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException ex) {
-            Log.e("ServerActivity", ex.toString());
-        }
-        return null;
-    }*/
 
     //nade lokalnu ip adresu
     public String getLocalIpAddress() {
@@ -222,6 +179,7 @@ public class ConversationActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -232,9 +190,18 @@ public class ConversationActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-    public void receiveMesssage(String message) {
-        ChatMessage receievedMessage = new ChatMessage(message, false);
+    public void receiveMessage(String message) {
+        String decrypted;
+        try{
+            decrypted = cryptoUtil.decrypt(message);
+        }
+        catch (Exception e) {
+            decrypted = message;
+            ChatMessage receievedMessage = new ChatMessage(e.getMessage(), false);
+            messagesList.add(receievedMessage);
+            adapter.notifyDataSetChanged();
+        }
+        ChatMessage receievedMessage = new ChatMessage(decrypted, false);
         messagesList.add(receievedMessage);
         adapter.notifyDataSetChanged();
     }
@@ -259,7 +226,7 @@ public class ConversationActivity extends AppCompatActivity {
                         try {
                             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                             out = new DataOutputStream(client.getOutputStream());
-                            String line = "LUFFYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY";
+                            String line;
                             while ((line = in.readLine()) != null) {
                                 Log.d("ServerActivity", line);
                                 class MyRunnable implements Runnable {
@@ -271,7 +238,7 @@ public class ConversationActivity extends AppCompatActivity {
 
                                     @Override
                                     public void run() {
-                                        receiveMesssage(str);
+                                        receiveMessage(str);
                                     }
                                 }
                                     handler.post(new MyRunnable(line));

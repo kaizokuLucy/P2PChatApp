@@ -29,7 +29,7 @@ public class KeyActivity extends AppCompatActivity {
         number = getIntent().getStringExtra("number");
         myKey = "Default";
         try{
-            myKey = Base64.encodeToString(CryptoUtil.getRawKey(getIntent().getStringExtra("number").getBytes()), Base64.DEFAULT);
+            myKey = Base64.encodeToString(CryptoUtil.getRawKey(), Base64.DEFAULT);
         }
         catch (Exception e){
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();

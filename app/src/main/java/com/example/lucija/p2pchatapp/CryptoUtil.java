@@ -4,6 +4,7 @@ import android.util.Base64;
 import android.widget.Toast;
 
 import java.security.SecureRandom;
+import java.security.Timestamp;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -33,7 +34,9 @@ public class CryptoUtil {
         return new String(result);
     }
 
-    public static byte[] getRawKey(byte[] seed) throws Exception {
+    public static byte[] getRawKey() throws Exception {
+        Long tsLong = System.currentTimeMillis();
+        byte[] seed = tsLong.toString().getBytes();
         KeyGenerator kgen = KeyGenerator.getInstance("AES");
         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG","Crypto");
         sr.setSeed(seed);
